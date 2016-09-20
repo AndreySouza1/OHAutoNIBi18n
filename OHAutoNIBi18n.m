@@ -86,6 +86,16 @@ void OHAutoNIBi18nSetCustomBundle(NSBundle *customBundle) {
     }
     // Call the original awakeFromNib method
 	[self localizeNibObject]; // this actually calls the original awakeFromNib (and not localizeNibObject) because we did some method swizzling
+    
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"text"]) {
+        UILabel *l = object;
+        l.associatedDictionary[@"text"] = change[@"new"];
+        [object removeObserver:object forKeyPath:keyPath context:context];
+    }
 }
 
 #ifndef OHAutoNIBi18n_AUTOLOAD_OFF
@@ -231,18 +241,19 @@ static void localizeUIButton(UIButton* btn) {
 		[btn setTitle:localizedString(title[3]) forState:UIControlStateSelected];
 }
 
+static void * XXContext = &XXContext;
+
 static void localizeUILabel(UILabel* lbl) {
+    NSLog(@"%@ - %@", lbl.text, lbl.associatedDictionary[@"text"]);
     if (!lbl.associatedDictionary[@"text"]) {
         lbl.associatedDictionary[@"text"] = lbl.text ?: @"";
     }
 	lbl.text = localizedString(lbl.associatedDictionary[@"text"]);
-    if (lbl.attributedText) {
-        if (!lbl.associatedDictionary[@"attributedText"]) {
-            lbl.associatedDictionary[@"attributedText"] = lbl.attributedText;
-        }
-        lbl.attributedText = localizedAttributedString(lbl.associatedDictionary[@"attributedText"]);
-    }
+    
+    [lbl addObserver:lbl forKeyPath:@"text" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:NULL];
 }
+
+
 
 static void localizeUINavigationItem(UINavigationItem* ni) {
     
