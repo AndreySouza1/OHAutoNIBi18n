@@ -89,15 +89,6 @@ void OHAutoNIBi18nSetCustomBundle(NSBundle *customBundle) {
     
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if ([keyPath isEqualToString:@"text"]) {
-        UILabel *l = object;
-        l.associatedDictionary[@"text"] = change[@"new"];
-        [object removeObserver:object forKeyPath:keyPath context:context];
-    }
-}
-
 #ifndef OHAutoNIBi18n_AUTOLOAD_OFF
 +(void)load
 {
@@ -244,13 +235,13 @@ static void localizeUIButton(UIButton* btn) {
 static void * XXContext = &XXContext;
 
 static void localizeUILabel(UILabel* lbl) {
+    NSString *Localizable = [[NSBundle mainBundle] pathForResource:@"Localizable" ofType:@"strings"];
+    NSDictionary *dictLocalizable = [NSDictionary dictionaryWithContentsOfFile:Localizable];
     NSLog(@"%@ - %@", lbl.text, lbl.associatedDictionary[@"text"]);
-    if (!lbl.associatedDictionary[@"text"]) {
+    if (!lbl.associatedDictionary[@"text"] || ![dictLocalizable objectForKey:lbl.associatedDictionary[@"text"]]) {
         lbl.associatedDictionary[@"text"] = lbl.text ?: @"";
     }
 	lbl.text = localizedString(lbl.associatedDictionary[@"text"]);
-    
-    [lbl addObserver:lbl forKeyPath:@"text" options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:NULL];
 }
 
 
